@@ -18,12 +18,49 @@ Before running the code, ensure you have the following:
    NEBULA_ACCESS_KEY=YOUR_ACCESS_KEY  #Use the Access Key from the Details page.
    NEBULA_SECRET_KEY=YOUR_SECRET_KEY  #Use the Secret Key from the Details page.
    NEBULA_ENDPOINT=YOUR_ENDPOINT_URL  #Use the Hostname from the Details page.
-   NEBULA_REGION=YOUR_REGION
+   NEBULA_REGION=YOUR_REGION          #Optional, default None.
    NEBULA_BUCKET=YOUR_BUCKET_NAME
    ```
 
 ## Python Code
+
 ### Common Usage Examples
+
+#### Create/Delete Bucket Demo
+```python
+import os
+import sys
+import logging
+import boto3
+from botocore.client import Config
+from dotenv import load_dotenv
+
+# Nebula Block configuration
+NEBULA_CONFIG = {
+    'aws_access_key_id': os.getenv('NEBULA_ACCESS_KEY'),
+    'aws_secret_access_key': os.getenv('NEBULA_SECRET_KEY'),
+    'endpoint_url': f"https://{os.getenv('NEBULA_ENDPOINT')}", 
+    'region_name': os.getenv('NEBULA_REGION'),
+    'bucket_name': os.getenv('NEBULA_BUCKET')
+}
+
+signature_version = 's3v4' # s3v4 for bucket management, s3 for upload and downloand file
+
+s3_client = boto3.client(
+    's3',
+    aws_access_key_id=NEBULA_CONFIG['aws_access_key_id'],
+    aws_secret_access_key=NEBULA_CONFIG['aws_secret_access_key'],
+    endpoint_url=NEBULA_CONFIG['endpoint_url'],
+    region_name=NEBULA_CONFIG['region_name'],
+    config=Config(signature_version=signature_version)
+)
+
+s3_client.create_bucket(Bucket=NEBULA_CONFIG['bucket_name'])
+s3_client.list_buckets()
+s3_client.delete_bucket(Bucket=NEBULA_CONFIG['bucket_name'])
+```
+
+### Upload/Download File Demo
 
 ```python
 #!/usr/bin/env python3
@@ -31,6 +68,7 @@ import os
 import sys
 import logging
 import boto3
+from botocore.client import Config
 from dotenv import load_dotenv
 
 # Configure logging
@@ -58,7 +96,7 @@ def create_s3_client():
             aws_secret_access_key=NEBULA_CONFIG['aws_secret_access_key'],
             endpoint_url=NEBULA_CONFIG['endpoint_url'],
             region_name=NEBULA_CONFIG['region_name'],
-            config=Config(signature_version='s3v4')
+            config=Config(signature_version='s3')
         )
         return s3_client
     except Exception as e:
@@ -218,4 +256,3 @@ Make sure to have the `boto3` and `python-dotenv` libraries installed and your `
 ---
 
 **Note**: Ensure that you keep your access keys secure. Do not hardcode them in production code. Always use environment variables or secret managers.
-
